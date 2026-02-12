@@ -1,24 +1,41 @@
 <?php
 
-codex/implement-partner-lead-module-9ufv7a
-use App\Http\Controllers\Admin\PartnerLeadAdminController;
-use App\Http\Controllers\Public\PartnerLeadController;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\PartnerDashboardController;
+
+use App\Http\Controllers\Auth\AdminAuthController;
+use App\Http\Controllers\Auth\PartnerAuthController;
+
+use App\Http\Controllers\Public\PartnerLeadController;
+use App\Http\Controllers\Admin\PartnerLeadAdminController;
+
+use App\Http\Controllers\PublicWeb\CorporateRentalPageController;
+use App\Http\Controllers\Admin\CorporateLeaseController;
+
+/*
+|--------------------------------------------------------------------------
+| Public
+|--------------------------------------------------------------------------
+*/
+
+// Corporate rental public page
+Route::get('/kurumsal-kiralama', CorporateRentalPageController::class)->name('corporate.rental');
+
+// Partner investment / lead page (Ahmet-Hasan)
 Route::get('/aracimi-kiraya-vermek-istiyorum', [PartnerLeadController::class, 'show'])
     ->name('partner.investment.show');
+
 Route::post('/aracimi-kiraya-vermek-istiyorum', [PartnerLeadController::class, 'store'])
     ->name('partner.investment.store');
 
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function (): void {
-    Route::get('/partner-leads', [PartnerLeadAdminController::class, 'index'])->name('partner-leads.index');
-    Route::get('/partner-leads/{id}', [PartnerLeadAdminController::class, 'show'])->name('partner-leads.show');
-    Route::put('/partner-leads/{id}/status', [PartnerLeadAdminController::class, 'update'])->name('partner-leads.update');
-use App\Http\Controllers\AdminDashboardController;
-use App\Http\Controllers\Auth\AdminAuthController;
-use App\Http\Controllers\Auth\PartnerAuthController;
-use App\Http\Controllers\PartnerDashboardController;
-use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Auth pages (guest)
+|--------------------------------------------------------------------------
+*/
 
 Route::redirect('/', '/admin/login');
 
@@ -30,13 +47,40 @@ Route::middleware('guest')->group(function () {
     Route::post('/partner/login', [PartnerAuthController::class, 'login'])->name('partner.login.submit');
 });
 
-Route::middleware(['auth', 'status.active', 'admin.only'])->group(function () {
-    Route::get('/admin', AdminDashboardController::class)->name('admin.dashboard');
-    Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
+
+/*
+|--------------------------------------------------------------------------
+| Admin area
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'status.active', 'admin.only'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', AdminDashboardController::class)->name('dashboard');
+    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+
+    // Partner leads (admin)
+    Route::get('/partner-leads', [PartnerLeadAdminController::class, 'index'])->name('partner-leads.index');
+    Route::get('/partner-leads/{id}', [PartnerLeadAdminController::class, 'show'])->name('partner-leads.show');
+    Route::put('/partner-leads/{id}/status', [PartnerLeadAdminController::class, 'update'])->name('partner-leads.update');
+
+    // Corporate leases (admin)
+    Route::get('/kurumsal-kiralamalar', [CorporateLeaseController::class, 'index'])->name('corporate-leases.index');
+    Route::get('/kurumsal-kiralamalar/create', [CorporateLeaseController::class, 'create'])->name('corporate-leases.create');
+    Route::post('/kurumsal-kiralamalar', [CorporateLeaseController::class, 'store'])->name('corporate-leases.store');
+    Route::get('/kurumsal-kiralamalar/{corporateLease}/edit', [CorporateLeaseController::class, 'edit'])->name('corporate-leases.edit');
+    Route::put('/kurumsal-kiralamalar/{corporateLease}', [CorporateLeaseController::class, 'update'])->name('corporate-leases.update');
+    Route::post('/kurumsal-kiralamalar/{corporateLease}/mark-paid', [CorporateLeaseController::class, 'markPaid'])->name('corporate-leases.mark-paid');
 });
 
-Route::middleware(['auth', 'status.active', 'partner.only'])->group(function () {
-    Route::get('/partner', PartnerDashboardController::class)->name('partner.dashboard');
-    Route::post('/partner/logout', [PartnerAuthController::class, 'logout'])->name('partner.logout');
-  main
+
+/*
+|--------------------------------------------------------------------------
+| Partner area
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'status.active', 'partner.only'])->prefix('partner')->name('partner.')->group(function () {
+    Route::get('/', PartnerDashboardController::class)->name('dashboard');
+    Route::post('/logout', [PartnerAuthController::class, 'logout'])->name('logout');
 });
+
