@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://example.com/hizmet-bolgeleri</loc><changefreq>weekly</changefreq></url>
+  <url><loc>https://example.com/hizmet-bolgeleri/istanbul-anadolu</loc><changefreq>weekly</changefreq></url>
+  <url><loc>https://example.com/hizmet-bolgeleri/istanbul-anadolu/atasehir</loc><changefreq>weekly</changefreq></url>
+  <url><loc>https://example.com/hizmet-bolgeleri/istanbul-anadolu/atasehir/sabiha-gokcen-havalimani</loc><changefreq>weekly</changefreq></url>
+</urlset>
