@@ -10,6 +10,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Admin user seed (MVP)
         User::query()->updateOrCreate(
             ['email' => 'admin@bivacars.com'],
             [
@@ -20,5 +21,10 @@ class DatabaseSeeder extends Seeder
                 'status' => 'active',
             ]
         );
+
+        // Service areas + SEO pages seed
+        $this->call([
+            ServiceAreasSeeder::class,
+        ]);
     }
 }
