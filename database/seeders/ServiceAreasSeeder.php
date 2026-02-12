@@ -71,25 +71,45 @@ class ServiceAreasSeeder extends Seeder
         foreach ($cities as $cityIndex => $cityData) {
             $cityId = $this->upsertCity($cityData['name'], $cityData['slug']);
 
+            // SEO: city
             $citySeo = $this->buildCitySeo($cityData['name'], $cityData['slug'], $cityIndex);
-            $this->upsertSeoPage('city', $cityId, $citySeo);
+            $this->upsertSeoPage([
+                'ref_type' => 'city',
+                'ref_id' => $cityId,
+                'locale' => 'tr',
+                'title' => $citySeo['title'],
+                'description' => $citySeo['meta_description'],
+                'content' => $citySeo['content'],
+            ]);
             $citySeoCount++;
 
+            // districts + SEO
             foreach ($cityData['districts'] as $districtIndex => $districtName) {
-                $districtId = $this->upsertDistrict($cityId, $districtName, Str::slug($districtName));
+                $districtSlug = Str::slug($districtName);
+                $districtId = $this->upsertDistrict($cityId, $districtName, $districtSlug);
 
                 $districtSeo = $this->buildDistrictSeo($districtName, $cityData['name'], $districtIndex);
-                $this->upsertSeoPage('district', $districtId, $districtSeo);
+                $this->upsertSeoPage([
+                    'ref_type' => 'district',
+                    'ref_id' => $districtId,
+                    'locale' => 'tr',
+                    'title' => $districtSeo['title'],
+                    'description' => $districtSeo['meta_description'],
+                    'content' => $districtSeo['content'],
+                ]);
                 $districtSeoCount++;
             }
 
+            // points + SEO
             foreach ($cityData['points'] as $pointIndex => $pointData) {
-                $pointId = $this->upsertPoint(
-                    $cityId,
-                    $pointData['name'],
-                    Str::slug($pointData['name']),
-                    $pointData['type']
-                );
+                $pointSlug = Str::slug($pointData['name']);
+                $pointId = $this->upsertPoint([
+                    'city_id' => $cityId,
+                    'district_id' => null,
+                    'name' => $pointData['name'],
+                    'slug' => $pointSlug,
+                    'type' => $pointData['type'],
+                ]);
 
                 $pointSeo = $this->buildPointSeo(
                     $pointData['name'],
@@ -97,7 +117,15 @@ class ServiceAreasSeeder extends Seeder
                     $cityData['name'],
                     $pointIndex
                 );
-                $this->upsertSeoPage('point', $pointId, $pointSeo);
+
+                $this->upsertSeoPage([
+                    'ref_type' => 'point',
+                    'ref_id' => $pointId,
+                    'locale' => 'tr',
+                    'title' => $pointSeo['title'],
+                    'description' => $pointSeo['meta_description'],
+                    'content' => $pointSeo['content'],
+                ]);
                 $pointSeoCount++;
             }
         }
@@ -144,40 +172,40 @@ class ServiceAreasSeeder extends Seeder
             ->value('id');
     }
 
-    private function upsertPoint(int $cityId, string $name, string $slug, string $type): int
+    private function upsertPoint(array $point): int
     {
-        DB::table('points')->updateOrInsert(
+        DB::table('location_points')->updateOrInsert(
             [
-                'city_id' => $cityId,
-                'slug' => $slug,
+                'city_id' => $point['city_id'],
+                'district_id' => $point['district_id'] ?? null,
+                'type' => $point['type'],
+                'slug' => $point['slug'],
             ],
             [
-                'name' => $name,
-                'slug' => $slug,
-                'type' => $type,
+                'name' => $point['name'],
                 'updated_at' => now(),
                 'created_at' => now(),
             ]
         );
 
-        return (int) DB::table('points')
-            ->where('city_id', $cityId)
-            ->where('slug', $slug)
+        return (int) DB::table('location_points')
+            ->where('city_id', $point['city_id'])
+            ->where('slug', $point['slug'])
             ->value('id');
     }
 
-    private function upsertSeoPage(string $pageType, int $entityId, array $seo): void
+    private function upsertSeoPage(array $seo): void
     {
         DB::table('seo_pages')->updateOrInsert(
             [
-                'page_type' => $pageType,
-                'entity_id' => $entityId,
+                'ref_type' => $seo['ref_type'],
+                'ref_id' => $seo['ref_id'],
+                'locale' => $seo['locale'] ?? 'tr',
             ],
             [
-                'h1' => $seo['h1'],
-                'title' => $seo['title'],
-                'meta_description' => $seo['meta_description'],
-                'content' => $seo['content'],
+                'title' => $seo['title'] ?? null,
+                'description' => $seo['description'] ?? null,
+                'content' => $seo['content'] ?? null,
                 'updated_at' => now(),
                 'created_at' => now(),
             ]
@@ -191,7 +219,6 @@ class ServiceAreasSeeder extends Seeder
             : 'Kısa süreli ya da kurumsal kiralama için WhatsApp hattımızdan hızlı teklif alın.';
 
         return [
-            'h1' => "{$cityName} Araç Kiralama",
             'title' => "{$cityName} Araç Kiralama | BivaCars",
             'meta_description' => "{$cityName} bölgesinde günlük ve kurumsal araç kiralama. WhatsApp ile hızlı rezervasyon.",
             'content' => "{$cityName} içinde şehir içi ve şehirler arası kullanıma uygun araç seçenekleri sunuyoruz. BivaCars ile ihtiyacınıza göre ekonomik, SUV veya geniş aile araçlarına kolayca ulaşabilirsiniz.\n\n"
@@ -222,7 +249,6 @@ class ServiceAreasSeeder extends Seeder
         ];
 
         return [
-            'h1' => "{$districtName} Araç Kiralama",
             'title' => "{$districtName} Araç Kiralama | BivaCars",
             'meta_description' => "{$districtName} bölgesinde günlük ve kurumsal araç kiralama. WhatsApp ile hızlı rezervasyon.",
             'content' => $introOptions[$variant % count($introOptions)] . "\n\n"
@@ -251,7 +277,6 @@ class ServiceAreasSeeder extends Seeder
             : "{$pointName} civarında hızlı rezervasyon için WhatsApp hattımızdan anında teklif alın.";
 
         return [
-            'h1' => "{$pointName} Yakınında Araç Kiralama",
             'title' => "{$pointName} Yakınında Araç Kiralama | BivaCars",
             'meta_description' => "{$pointName} çevresinde hızlı araç kiralama, kolay teslimat ve WhatsApp ile anında rezervasyon.",
             'content' => "{$cityName} bölgesindeki {$focus} noktalarına yakın araç kiralama ihtiyaçlarınız için BivaCars hızlı çözümler sunar. {$pointName} yakınında size uygun sınıfta aracı kısa sürede ayırabiliriz.\n\n"
