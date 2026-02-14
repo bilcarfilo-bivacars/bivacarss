@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\PartnerAuthController;
 
 use App\Http\Controllers\Public\PartnerLeadController;
+use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Admin\PartnerLeadAdminController;
 
 use App\Http\Controllers\PublicWeb\CorporateRentalPageController;
@@ -29,6 +30,8 @@ Route::get('/aracimi-kiraya-vermek-istiyorum', [PartnerLeadController::class, 's
 
 Route::post('/aracimi-kiraya-vermek-istiyorum', [PartnerLeadController::class, 'store'])
     ->name('partner.investment.store');
+
+Route::get('/iletisim', [ContactController::class, 'show'])->name('public.contact');
 
 
 /*
