@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\PartnerLead;
+use App\Models\CorporateLead;
 use App\Services\Leads\LeadScoringService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class PartnerLeadAdminController extends Controller
+class CorporateLeadAdminController extends Controller
 {
     public function __construct(private readonly LeadScoringService $leadScoringService)
     {
@@ -21,7 +21,7 @@ class PartnerLeadAdminController extends Controller
         $grade = $request->string('grade')->toString();
         $minScore = $request->integer('min_score');
 
-        $leads = PartnerLead::query()
+        $leads = CorporateLead::query()
             ->when($status !== '', fn ($query) => $query->where('status', $status))
             ->when($grade !== '', fn ($query) => $query->where('lead_grade', $grade))
             ->when($request->filled('min_score'), fn ($query) => $query->where('lead_score', '>=', $minScore))
@@ -29,37 +29,37 @@ class PartnerLeadAdminController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.leads.partner.index', compact('leads', 'status', 'grade', 'minScore'));
+        return view('admin.leads.corporate.index', compact('leads', 'status', 'grade', 'minScore'));
     }
 
     public function show(int $id): View
     {
-        $lead = PartnerLead::query()->findOrFail($id);
+        $lead = CorporateLead::query()->findOrFail($id);
 
-        return view('admin.leads.partner.show', compact('lead'));
+        return view('admin.leads.corporate.show', compact('lead'));
     }
 
     public function rescore(int $id): RedirectResponse
     {
-        $lead = PartnerLead::query()->findOrFail($id);
-        $this->leadScoringService->scorePartnerLead($lead);
+        $lead = CorporateLead::query()->findOrFail($id);
+        $this->leadScoringService->scoreCorporateLead($lead);
 
         return redirect()
-            ->route('admin.partner-leads.show', $lead->id)
-            ->with('success', 'Lead puanı yeniden hesaplandı.');
+            ->route('admin.corporate-leads.show', $lead->id)
+            ->with('success', 'Kurumsal lead puanı yeniden hesaplandı.');
     }
 
-    public function update(Request $request, int $id): RedirectResponse
+    public function updateStatus(Request $request, int $id): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', 'in:new,contacted,converted,archived'],
+            'status' => ['required', 'in:new,contacted,qualified,won,lost'],
         ]);
 
-        $lead = PartnerLead::query()->findOrFail($id);
+        $lead = CorporateLead::query()->findOrFail($id);
         $lead->update(['status' => $validated['status']]);
 
         return redirect()
-            ->route('admin.partner-leads.show', $lead->id)
-            ->with('success', 'Lead durumu güncellendi.');
+            ->route('admin.corporate-leads.show', $lead->id)
+            ->with('success', 'Kurumsal lead durumu güncellendi.');
     }
 }
