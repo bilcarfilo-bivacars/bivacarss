@@ -22,7 +22,7 @@ jobs:
           php-version: "8.2"
           tools: composer:v2
 
-      # 🔥 Laravel için gerekli klasörleri oluştur
+      # Laravel için gerekli klasörleri oluştur
       - name: Prepare writable dirs (runner)
         run: |
           mkdir -p storage/framework/cache
@@ -35,7 +35,7 @@ jobs:
       - name: Composer install (no-dev)
         run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-      - name: Setup Node (runner only)
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -54,10 +54,6 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -p "${{ secrets.SSH_PORT }}" -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
-
-      - name: Ensure rsync exists on server
-        run: |
-          ssh -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" "sudo apt -y install rsync"
 
       - name: Rsync to server
         run: |
