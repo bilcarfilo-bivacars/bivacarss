@@ -22,15 +22,23 @@ jobs:
           php-version: "8.2"
           tools: composer:v2
 
-      - name: Composer install (no-dev)
+      # 🔥 Laravel için gerekli klasörleri oluştur
+      - name: Prepare writable dirs (runner)
         run: |
-          composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+          mkdir -p storage/framework/cache
+          mkdir -p storage/framework/sessions
+          mkdir -p storage/framework/views
+          mkdir -p storage/logs
+          mkdir -p bootstrap/cache
+          chmod -R 777 storage bootstrap/cache
+
+      - name: Composer install (no-dev)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
       - name: Setup Node (runner only)
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
 
       - name: Build assets (Vite)
         run: |
