@@ -22,7 +22,7 @@ jobs:
           php-version: "8.2"
           tools: composer:v2
 
-      # Laravel için gerekli klasörleri oluştur
+      # Laravel runner klasörleri
       - name: Prepare writable dirs (runner)
         run: |
           mkdir -p storage/framework/cache
@@ -58,8 +58,12 @@ jobs:
       - name: Rsync to server
         run: |
           rsync -az --delete \
+            --no-times --omit-dir-times \
             --exclude=".env" \
+            --exclude="storage" \
             --exclude="storage/**" \
+            --exclude="bootstrap/cache" \
+            --exclude="bootstrap/cache/**" \
             --exclude=".git/**" \
             --exclude="node_modules/**" \
             --exclude="tests/**" \
