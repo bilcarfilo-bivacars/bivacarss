@@ -14,14 +14,7 @@ class StatusActive
 
         if ($user && $user->status !== 'active') {
             auth()->logout();
-
-            if ($request->expectsJson()) {
-                return response()->json(['message' => 'Hesap pasif durumda.'], 403);
-            }
-
-            return redirect()->route('admin.login')->withErrors([
-                'phone' => 'Hesabınız pasif durumda.',
-            ]);
+            abort(403, 'Hesap pasif durumda.');
         }
 
         return $next($request);

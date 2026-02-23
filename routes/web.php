@@ -4,7 +4,7 @@ use App\Http\Controllers\Admin\CorporateLeadAdminController;
 use App\Http\Controllers\Admin\CorporateLeaseController;
 use App\Http\Controllers\Admin\CorporatePipelineController;
 use App\Http\Controllers\Admin\PartnerLeadAdminController;
-use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\PartnerAuthController;
 use App\Http\Controllers\PartnerDashboardController;
@@ -32,7 +32,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware(['auth', 'statusActive', 'adminOnly'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', AdminDashboardController::class)->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
     Route::get('/leadler/partner', [PartnerLeadAdminController::class, 'index'])->name('partner-leads.index');
