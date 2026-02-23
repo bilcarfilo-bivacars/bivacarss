@@ -72,3 +72,18 @@ curl -i -b cookie.txt http://127.0.0.1:8000/api/auth/me -H 'Accept: application/
 
 curl -i -b cookie.txt -X POST http://127.0.0.1:8000/api/auth/logout -H 'Accept: application/json'
 ```
+
+## Admin Dashboard KPI / Cache
+
+- Admin dashboard KPI metrikleri cache üzerinden servis edilir ve varsayılan TTL ile yük azaltılır.
+- Cache key prefix standardı: `bivacars:dashboard:*`
+  - `bivacars:dashboard:metrics` (5 dk)
+  - `bivacars:dashboard:recent:corporate_leads` (2 dk)
+  - `bivacars:dashboard:recent:partner_leads` (2 dk)
+  - `bivacars:dashboard:recent:leases` (2 dk)
+- KPI örnekleri:
+  - Bugünkü partner ve corporate lead adetleri
+  - Son 30 gündeki high value lead adedi
+  - Aktif/öne çıkan araç adetleri
+  - Bekleyen fiyat talebi ve bekleyen ödeme sayıları
+  - Aktif lease aylık toplam bedeline göre aylık gelir tahmini
