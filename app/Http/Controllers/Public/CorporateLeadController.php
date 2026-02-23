@@ -32,14 +32,16 @@ class CorporateLeadController extends Controller
             'district' => ['nullable', 'string', 'max:255'],
             'sector' => ['nullable', 'string', 'max:255'],
             'vehicles_needed' => ['nullable', 'integer', 'min:0'],
+            'vehicles_count' => ['nullable', 'integer', 'min:0'],
             'lease_months' => ['nullable', 'integer', 'min:1'],
             'budget_monthly' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:5000'],
         ]);
 
-        $lead = CorporateLead::query()->create($validated + [
+        $lead = CorporateLead::query()->create(array_merge($validated, [
+            'vehicles_needed' => $validated['vehicles_needed'] ?? $validated['vehicles_count'] ?? null,
             'status' => 'new',
-        ]);
+        ]));
 
         $this->leadScoringService->scoreCorporateLead($lead);
 

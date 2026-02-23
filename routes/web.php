@@ -5,10 +5,15 @@ use App\Http\Controllers\Admin\CorporateLeaseController;
 use App\Http\Controllers\Admin\CorporatePipelineController;
 use App\Http\Controllers\Admin\PartnerLeadAdminController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\IndustryAdminController;
+use App\Http\Controllers\Admin\SeoPageAdminController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\PartnerAuthController;
 use App\Http\Controllers\PartnerDashboardController;
 use App\Http\Controllers\Public\CorporateLeadController;
+use App\Http\Controllers\Public\CityIndustryLandingController;
+use App\Http\Controllers\Public\IndustryController;
+use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\PartnerLeadController;
 use App\Http\Controllers\PublicWeb\CorporateRentalPageController;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +25,11 @@ Route::post('/kurumsal-teklif-al', [CorporateLeadController::class, 'store'])->n
 
 Route::get('/aracimi-kiraya-vermek-istiyorum', [PartnerLeadController::class, 'show'])->name('partner.investment.show');
 Route::post('/aracimi-kiraya-vermek-istiyorum', [PartnerLeadController::class, 'store'])->name('partner.investment.store');
+
+Route::get('/sektorler', [IndustryController::class, 'index'])->name('public.industries.index');
+Route::get('/sektorler/{industrySlug}', [IndustryController::class, 'show'])->name('public.industries.show');
+Route::get('/filo-kiralama/{citySlug}/{industrySlug}', [CityIndustryLandingController::class, 'show'])->name('public.city-industry.show');
+Route::get('/sitemap.xml', SitemapController::class)->name('public.sitemap');
 
 Route::redirect('/', '/admin/login');
 
@@ -55,6 +65,13 @@ Route::middleware(['auth', 'statusActive', 'adminOnly'])->prefix('admin')->name(
     Route::put('/kurumsal-kiralamalar/{corporateLease}', [CorporateLeaseController::class, 'update'])->name('corporate-leases.update');
     Route::post('/kurumsal-kiralamalar/{corporateLease}/mark-paid', [CorporateLeaseController::class, 'markPaid'])->name('corporate-leases.mark-paid');
     Route::post('/kurumsal-kiralamalar/{corporateLease}/match-vehicle', [CorporateLeaseController::class, 'matchVehicle'])->name('corporate-leases.match-vehicle');
+
+    Route::get('/sektorler', [IndustryAdminController::class, 'index'])->name('industries.index');
+    Route::post('/sektorler', [IndustryAdminController::class, 'store'])->name('industries.store');
+    Route::put('/sektorler/{industry}', [IndustryAdminController::class, 'update'])->name('industries.update');
+
+    Route::get('/seo-sayfalari', [SeoPageAdminController::class, 'index'])->name('seo-pages.index');
+    Route::put('/seo-sayfalari/{seoPage}', [SeoPageAdminController::class, 'update'])->name('seo-pages.update');
 });
 
 Route::middleware(['auth', 'statusActive', 'partnerOnly'])->prefix('partner')->name('partner.')->group(function () {
