@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CorporateLead;
+use App\Services\Corporate\CorporateLeaseFactory;
 use App\Services\Leads\LeadScoringService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,8 +12,10 @@ use Illuminate\View\View;
 
 class CorporateLeadAdminController extends Controller
 {
-    public function __construct(private readonly LeadScoringService $leadScoringService)
-    {
+    public function __construct(
+        private readonly LeadScoringService $leadScoringService,
+        private readonly CorporateLeaseFactory $corporateLeaseFactory,
+    ) {
     }
 
     public function index(Request $request): View
@@ -34,7 +37,7 @@ class CorporateLeadAdminController extends Controller
 
     public function show(int $id): View
     {
-        $lead = CorporateLead::query()->findOrFail($id);
+        $lead = CorporateLead::query()->with('convertedLease')->findOrFail($id);
 
         return view('admin.leads.corporate.show', compact('lead'));
     }
@@ -61,5 +64,22 @@ class CorporateLeadAdminController extends Controller
         return redirect()
             ->route('admin.corporate-leads.show', $lead->id)
             ->with('success', 'Kurumsal lead durumu güncellendi.');
+    }
+
+    public function convertToLease(int $id): RedirectResponse
+    {
+        $lead = CorporateLead::query()->findOrFail($id);
+
+        if ($lead->converted_to_lease_id) {
+            return redirect()
+                ->route('admin.corporate-leads.show', $lead->id)
+                ->with('success', 'Lead daha önce kiralamaya dönüştürüldü.');
+        }
+
+        $lease = $this->corporateLeaseFactory->createFromLead($lead);
+
+        return redirect()
+            ->route('admin.corporate-leases.edit', $lease)
+            ->with('success', 'Kurumsal lead başarıyla kiralamaya dönüştürüldü.');
     }
 }

@@ -6,15 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Models\CorporateLease;
 use App\Models\CorporateModel;
 use App\Models\KmPackage;
+use App\Services\Corporate\VehicleMatchService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class CorporateLeaseController extends Controller
 {
+    public function __construct(private readonly VehicleMatchService $vehicleMatchService)
+    {
+    }
+
     public function index(Request $request)
     {
         $leases = CorporateLease::query()
-            ->with(['model', 'kmPackage'])
+            ->with(['model', 'kmPackage', 'sourceLead'])
             ->latest()
             ->paginate(20);
 
@@ -31,6 +37,7 @@ class CorporateLeaseController extends Controller
             'lease' => new CorporateLease(),
             'models' => CorporateModel::query()->get(),
             'packages' => KmPackage::query()->get(),
+            'vehicleSuggestions' => collect(),
         ]);
     }
 
@@ -52,6 +59,7 @@ class CorporateLeaseController extends Controller
             'lease' => $corporateLease,
             'models' => CorporateModel::query()->get(),
             'packages' => KmPackage::query()->get(),
+            'vehicleSuggestions' => $this->vehicleMatchService->suggestVehiclesForLease($corporateLease),
         ]);
     }
 
@@ -63,7 +71,7 @@ class CorporateLeaseController extends Controller
             $data['monthly_price'] = KmPackage::query()->findOrFail($data['km_package_id'])->yearly_price;
         }
 
-        if (($data['payment_status'] ?? null) === 'paid' && !$corporateLease->paid_at) {
+        if (($data['payment_status'] ?? null) === 'paid' && ! $corporateLease->paid_at) {
             $data['paid_at'] = now();
         }
 
@@ -82,12 +90,28 @@ class CorporateLeaseController extends Controller
         return response()->json($corporateLease->fresh(['model', 'kmPackage']));
     }
 
+    public function matchVehicle(Request $request, CorporateLease $corporateLease): RedirectResponse
+    {
+        $data = $request->validate([
+            'vehicle_id' => ['required', 'exists:vehicles,id'],
+        ]);
+
+        $corporateLease->update([
+            'matched_vehicle_id' => $data['vehicle_id'],
+        ]);
+
+        return redirect()
+            ->route('admin.corporate-leases.edit', $corporateLease)
+            ->with('success', 'Araç kiralama ile eşleştirildi.');
+    }
+
     private function validated(Request $request, bool $isUpdate = false): array
     {
         $rules = [
             'company_name' => [$isUpdate ? 'sometimes' : 'required', 'string', 'max:255'],
             'contact_name' => ['nullable', 'string', 'max:255'],
             'contact_phone' => ['nullable', 'string', 'max:40'],
+            'contact_email' => ['nullable', 'email', 'max:255'],
             'corporate_model_id' => ['nullable', 'exists:corporate_models,id'],
             'vehicle_id' => ['nullable', 'exists:vehicles,id'],
             'km_package_id' => [$isUpdate ? 'sometimes' : 'required', 'exists:km_packages,id'],
@@ -97,6 +121,7 @@ class CorporateLeaseController extends Controller
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'status' => ['nullable', 'in:draft,active,ended,cancelled'],
             'payment_status' => ['nullable', 'in:pending,paid'],
+            'pipeline_stage' => ['nullable', 'in:new,contacted,qualified,proposal_sent,won,lost'],
             'notes' => ['nullable', 'string'],
         ];
 
