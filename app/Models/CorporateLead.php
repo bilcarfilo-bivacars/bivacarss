@@ -25,6 +25,7 @@ class CorporateLead extends Model
         'lead_score',
         'lead_grade',
         'status',
+        'converted_to_lease_id',
         'scored_at',
     ];
 
@@ -33,6 +34,12 @@ class CorporateLead extends Model
         'lease_months' => 'integer',
         'budget_monthly' => 'decimal:2',
         'lead_score' => 'integer',
+        'converted_to_lease_id' => 'integer',
         'scored_at' => 'datetime',
     ];
+
+    public function convertedLease()
+    {
+        return $this->belongsTo(CorporateLease::class, 'converted_to_lease_id');
+    }
 }

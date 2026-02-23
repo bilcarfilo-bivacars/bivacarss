@@ -11,6 +11,18 @@
     <p><strong>Grade:</strong> <span class="badge {{ $lead->lead_grade === 'high' ? 'bg-success' : ($lead->lead_grade === 'medium' ? 'bg-warning text-dark' : 'bg-secondary') }}">{{ $lead->lead_grade }}</span></p>
     <p><strong>Status:</strong> <span class="badge bg-info text-dark">{{ $lead->status }}</span></p>
 
+    <div class="mb-3">
+        @if($lead->converted_to_lease_id)
+            <a href="{{ route('admin.corporate-leases.edit', $lead->converted_to_lease_id) }}" class="btn btn-success">Oluşturulan Lease'e Git</a>
+            <button class="btn btn-secondary" disabled>Lease Oluştur (Qualified)</button>
+        @else
+            <form method="POST" action="{{ route('admin.corporate-leads.convert-to-lease', $lead->id) }}">
+                @csrf
+                <button class="btn btn-success">Lease Oluştur (Qualified)</button>
+            </form>
+        @endif
+    </div>
+
     <form method="POST" action="{{ route('admin.corporate-leads.rescore', $lead->id) }}" class="mb-3">
         @csrf
         <button class="btn btn-warning">Yeniden Puanla</button>

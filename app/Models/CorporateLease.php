@@ -13,6 +13,7 @@ class CorporateLease extends Model
         'company_name',
         'contact_name',
         'contact_phone',
+        'contact_email',
         'corporate_model_id',
         'vehicle_id',
         'km_package_id',
@@ -25,6 +26,9 @@ class CorporateLease extends Model
         'paid_at',
         'notes',
         'created_by',
+        'source_lead_id',
+        'pipeline_stage',
+        'matched_vehicle_id',
     ];
 
     protected $casts = [
@@ -33,6 +37,8 @@ class CorporateLease extends Model
         'paid_at' => 'datetime',
         'monthly_price' => 'decimal:2',
         'vat_rate' => 'decimal:2',
+        'source_lead_id' => 'integer',
+        'matched_vehicle_id' => 'integer',
     ];
 
     public function model()
@@ -48,6 +54,16 @@ class CorporateLease extends Model
     public function vehicle()
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    public function matchedVehicle()
+    {
+        return $this->belongsTo(Vehicle::class, 'matched_vehicle_id');
+    }
+
+    public function sourceLead()
+    {
+        return $this->belongsTo(CorporateLead::class, 'source_lead_id');
     }
 
     public function creator()

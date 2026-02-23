@@ -45,6 +45,48 @@
         <button type="submit">Kaydet</button>
     </form>
 
+    @if($lease->exists)
+        <hr>
+        <h2>Araç Öner</h2>
+
+        @if($lease->matchedVehicle)
+            <p><strong>Eşleşen Araç:</strong> {{ $lease->matchedVehicle->brand }} {{ $lease->matchedVehicle->model }}</p>
+        @endif
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Marka/Model</th>
+                    <th>Yıl</th>
+                    <th>KM</th>
+                    <th>Fiyat</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($vehicleSuggestions as $vehicle)
+                    <tr>
+                        <td>{{ $vehicle->brand }} {{ $vehicle->model }}</td>
+                        <td>{{ $vehicle->year }}</td>
+                        <td>{{ $vehicle->km }}</td>
+                        <td>{{ number_format($vehicle->listing_price_monthly, 2, ',', '.') }} TL</td>
+                        <td>
+                            <form method="POST" action="{{ route('admin.corporate-leases.match-vehicle', $lease) }}">
+                                @csrf
+                                <input type="hidden" name="vehicle_id" value="{{ $vehicle->id }}">
+                                <button type="submit">Bu aracı eşleştir</button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5">Uygun araç önerisi bulunamadı.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    @endif
+
     <script>
         document.getElementById('km_package_id')?.addEventListener('change', function (e) {
             const selected = e.target.selectedOptions[0];
